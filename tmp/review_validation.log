@@ -1,0 +1,9 @@
+PASS 01: sample grid and signal
+PASS 02: masks and four panels
+PASS 03: filter vs independent recurrence, stability and DC
+PASS 04: all three continuous responses vs analytic expressions
+PASS 05: constant magnitude, variable-length function and nine panels
+PASS 06: convolution vs FFT and analytic continuous response
+PASS 07: spectral peaks, Parseval and conjugate symmetry
+PASS 08: aliasing identity and changed sample rate
+ALL 8 LESSONS PASSED ON 24.1.0.2537033 (R2024a)
