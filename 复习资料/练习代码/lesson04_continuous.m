@@ -1,40 +1,33 @@
-%% 第4课：连续系统响应（仅需 MATLAB，使用ode45）
-% 对应考题：y''+1.2*y'+y=x'+x，零初始状态，x为0<=t<2矩形。
-% 课程标准方法是tf/lsim。当前没有控制工具箱，先用等价状态实现。
-% 令v''+1.2*v'+v=x，y=v'+v，避免直接数值微分矩形输入。
+%% 第4课：连续系统响应（Control System Toolbox）
+% 对应考题：y'' + 1.2*y' + y = x' + x，零初始状态，x 为 0<=t<2 的矩形。
+% 分子系数 [1 1] 对应 x' + x；分母系数 [1 1.2 1] 对应 y'' + 1.2*y' + y。
 clear;
 close all;
 clc;
 
 dt = 0.01;
 t = (0:dt:10).';
-x = double((t>=0)&(t<2));
-opts = odeset('RelTol',1e-9,'AbsTol',1e-11);
+x = double((t >= 0) & (t < 2));
 
-% 在输入切换处拆开积分，避免跨越不连续点。
-[t1,v1] = ode45(@(tt,v) [v(2);-v(1)-1.2*v(2)+1], ...
-    (0:dt:2).',[0;0],opts);
-[t2,v2] = ode45(@(tt,v) [v(2);-v(1)-1.2*v(2)], ...
-    (2:dt:10).',v1(end,:).',opts);
-v = [v1;v2(2:end,:)];
-y = v(:,1)+v(:,2);
+% 用传递函数表示系统：H(s) = (s+1)/(s^2+1.2s+1)
+sys = tf([1 1], [1 1.2 1]);
 
-% 单位冲激使v'从0跳至1，本系统无直通项。
-[~,vh] = ode45(@(tt,v) [v(2);-v(1)-1.2*v(2)],t,[0;1],opts);
-h = vh(:,1)+vh(:,2);
-[~,vg] = ode45(@(tt,v) [v(2);-v(1)-1.2*v(2)+1],t,[0;0],opts);
-g = vg(:,1)+vg(:,2);
+% 零状态响应：将矩形输入 x(t) 送进系统，得到 y(t)。
+y = lsim(sys, x, t);
 
-figure('Name','Lesson 4');
-subplot(2,2,1); plot(t,x); grid on; title('Input'); xlabel('t / s');
-subplot(2,2,2); plot(t,y); grid on; title('Zero-state response'); xlabel('t / s');
-subplot(2,2,3); plot(t,h); grid on; title('Impulse response'); xlabel('t / s');
-subplot(2,2,4); plot(t,g); grid on; title('Step response'); xlabel('t / s');
+% 分别以单位冲激、单位阶跃作为输入，观察系统本身的两种标准响应。
+h = impulse(sys, t);
+g = step(sys, t);
 
-% 工具箱齐全时优先学习以下考题写法：
-% sys = tf([1 1],[1 1.2 1]);
-% y = lsim(sys,x,t);   % 数值输入插值在跳变附近可能与理想矩形略不同
-% h = impulse(sys,t);
-% g = step(sys,t);
-% 验证：h(0+)=1，g(0)=0，g最终趋近1，矩形输入输出最终衰减至0。
-% 不要求第一轮背下ode45写法，重点识别输入、输出与两类响应。
+figure('Name', 'Lesson 4');
+subplot(2,2,1); plot(t, x, 'LineWidth', 1.2); grid on;
+title('Input x(t)'); xlabel('t / s'); ylabel('x(t)');
+subplot(2,2,2); plot(t, y, 'LineWidth', 1.2); grid on;
+title('Zero-state response y(t)'); xlabel('t / s'); ylabel('y(t)');
+subplot(2,2,3); plot(t, h, 'LineWidth', 1.2); grid on;
+title('Impulse response h(t)'); xlabel('t / s'); ylabel('h(t)');
+subplot(2,2,4); plot(t, g, 'LineWidth', 1.2); grid on;
+title('Step response g(t)'); xlabel('t / s'); ylabel('g(t)');
+
+% 自查：h(0+) 约为 1；g(0)=0；g(t) 最终趋近 1；
+% 矩形输入结束后，零状态响应 y(t) 最终衰减至 0。
