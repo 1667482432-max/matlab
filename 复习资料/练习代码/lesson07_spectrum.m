@@ -1,19 +1,21 @@
-%% 第7课：FFT双边幅度谱、连续傅里叶积分近似（仅需 MATLAB）
+%% 第7课：FFT双边幅度谱、连续傅里叶积分近似（仅需 MATLAB；同目录需要 prefourier.m）
 clear;
 close all;
 clc;
 
 fs = 100;
 N = 500;
-t = (0:N-1).'/fs;
+Trg = [0 N/fs];
+OMGrg = 2*pi*[-10 10];
+K = 1001;
+[t,omg,FT,~] = prefourier(Trg,N,OMGrg,K);
 x = cos(2*pi*2*t)+0.5*cos(2*pi*8*t);
 X = fft(x);
 f = (-N/2:N/2-1).'*fs/N;
 amplitude = abs(fftshift(X))/N;       % 双边谱，不是单边谱
 
-fct = linspace(-10,10,1001).';        % Hz，本例包含零频率点
-wct = 2*pi*fct;                      % 转成rad/s进入指数
-Xct = (1/fs)*exp(-1i*(wct*t.'))*x;   % 连续变换的矩形求积近似
+fct = omg/(2*pi);                     % 将课件函数的 rad/s 转成 Hz
+Xct = FT*x;                           % 调用课件函数建立的连续变换矩阵
 
 figure('Name','Lesson 7');
 subplot(3,1,1); plot(t,x); grid on; title('Input'); xlabel('t / s');
